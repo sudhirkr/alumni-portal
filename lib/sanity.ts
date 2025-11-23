@@ -21,3 +21,46 @@ export function urlFor(source: any) {
     return undefined;
   }
 }
+
+// GROQ queries for fetching data
+export async function fetchEvents() {
+  return client.fetch(`*[_type == "event"] | order(date asc) {
+    _id,
+    title,
+    date,
+    time,
+    location,
+    description,
+    category
+  }`);
+}
+
+export async function fetchAlumniHighlights() {
+  return client.fetch(`*[_type == "alumniHighlight"] {
+    _id,
+    name,
+    gradYear,
+    role,
+    company,
+    quote,
+    imageUrl
+  }`);
+}
+
+export async function fetchNews() {
+  return client.fetch(`*[_type == "newsItem"] | order(date desc) {
+    _id,
+    title,
+    date,
+    summary,
+    category
+  }`);
+}
+
+export async function fetchPhotos() {
+  return client.fetch(`*[_type == "photo"] {
+    _id,
+    caption,
+    url
+  }`);
+}
