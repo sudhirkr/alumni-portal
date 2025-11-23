@@ -6,7 +6,7 @@ import imageUrlBuilder from '@sanity/image-url';
 export const client = createClient({
   projectId: import.meta.env.SANITY_PROJECT_ID || 'gzqpmpjn',
   dataset: import.meta.env.SANITY_DATASET || 'production',
-  useCdn: true,
+  useCdn: false, // Disabled for faster, more frequent updates from CMS
   apiVersion: '2024-03-01',
 });
 

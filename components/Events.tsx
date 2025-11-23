@@ -1,47 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Clock } from 'lucide-react';
-import { UPCOMING_EVENTS } from '../constants';
 import { Event } from '../types';
-import { client } from '../lib/sanity';
+import { fetchEvents } from '../lib/sanity';
 
 const Events: React.FC = () => {
   const [filter, setFilter] = useState<string>('All');
-  const [events, setEvents] = useState<Event[]>(UPCOMING_EVENTS);
+  const [events, setEvents] = useState<Event[]>([]);
   const categories = ['All', 'Meetup', 'Talk', 'Reunion', 'Workshop'];
 
   useEffect(() => {
-    // Fetch events from Sanity
-    // Query matches typical Sanity schema: _type: 'event', with fields matching our types
-    const query = `*[_type == "event"] | order(date asc) {
-      _id,
-      title,
-      date,
-      time,
-      location,
-      description,
-      category
-    }`;
-
-    client.fetch(query)
-      .then((data) => {
-        // Map Sanity data to our Event type if data exists
-        if (data && data.length > 0) {
-          const formattedEvents = data.map((item: any) => ({
-            id: item._id,
-            title: item.title,
-            date: item.date, // Assuming date is stored as formatted string or handle conversion
-            time: item.time,
-            location: item.location,
-            description: item.description,
-            category: item.category
-          }));
-          setEvents(formattedEvents);
-        }
-      })
-      .catch((err) => {
-        console.log("Sanity fetch failed (using static data):", err);
-      });
+    fetchEvents().then((data: any[]) => {
+      // Map Sanity data to our Event type
+      const formattedEvents = data.map((item) => ({
+        id: item._id,
+        title: item.title,
+        date: formatDate(item.date), // Convert ISO date back to string format
+        time: item.time,
+        location: item.location,
+        description: item.description,
+        category: item.category
+      }));
+      setEvents(formattedEvents);
+    }).catch((err) => {
+      console.log("Sanity fetch failed:", err);
+    });
   }, []);
+
+// Helper function to format date from ISO (2025-08-15) to "Aug 15, 2025"
+function formatDate(isoDate: string) {
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
 
   const filteredEvents = filter === 'All' 
     ? events 

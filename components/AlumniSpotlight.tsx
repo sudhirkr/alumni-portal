@@ -1,40 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { ALUMNI_HIGHLIGHTS } from '../constants';
 import { AlumniProfile } from '../types';
-import { client, urlFor } from '../lib/sanity';
+import { fetchAlumniHighlights } from '../lib/sanity';
 
 const AlumniSpotlight: React.FC = () => {
-  const [profiles, setProfiles] = useState<AlumniProfile[]>(ALUMNI_HIGHLIGHTS);
+  const [profiles, setProfiles] = useState<AlumniProfile[]>([]);
 
   useEffect(() => {
-    const query = `*[_type == "alumniHighlight"] {
-      _id,
-      name,
-      gradYear,
-      role,
-      company,
-      quote,
-      image
-    }`;
-
-    client.fetch(query)
-      .then((data) => {
-        if (data && data.length > 0) {
-          const formattedProfiles = data.map((item: any) => ({
-            id: item._id,
-            name: item.name,
-            gradYear: item.gradYear,
-            role: item.role,
-            company: item.company,
-            quote: item.quote,
-            imageUrl: urlFor(item.image)?.width(400).height(400).url() || ''
-          }));
-          setProfiles(formattedProfiles);
-        }
-      })
-      .catch((err) => {
-        console.log("Sanity fetch failed (using static data):", err);
-      });
+    fetchAlumniHighlights().then((data: any[]) => {
+      // Map Sanity data to our AlumniProfile type
+      const formattedProfiles = data.map((item) => ({
+        id: item._id,
+        name: item.name,
+        gradYear: item.gradYear,
+        role: item.role,
+        company: item.company,
+        quote: item.quote,
+        imageUrl: item.imageUrl || ''
+      }));
+      setProfiles(formattedProfiles);
+    }).catch((err) => {
+      console.log("Sanity fetch failed:", err);
+    });
   }, []);
 
   return (
@@ -51,9 +37,9 @@ const AlumniSpotlight: React.FC = () => {
           {profiles.map((alum) => (
             <div key={alum.id} className="bg-slate-800/50 rounded-xl p-8 border border-slate-700 hover:border-cmi-gold/50 transition-colors duration-300">
               <div className="flex items-center gap-4 mb-6">
-                <img 
-                  src={alum.imageUrl} 
-                  alt={alum.name} 
+                <img
+                  src={alum.imageUrl}
+                  alt={alum.name}
                   className="w-16 h-16 rounded-full object-cover border-2 border-cmi-gold"
                 />
                 <div>
@@ -62,7 +48,7 @@ const AlumniSpotlight: React.FC = () => {
                 </div>
               </div>
               <blockquote className="text-slate-300 italic mb-6 relative">
-                <span className="text-5xl text-slate-700 absolute -top-6 -left-2 font-serif">“</span>
+                <span className="text-5xl text-slate-700 absolute -top-6 -left-2 font-serif">"</span>
                 <p className="relative z-10 pl-4">{alum.quote}</p>
               </blockquote>
               <div className="mt-auto pt-4 border-t border-slate-700">

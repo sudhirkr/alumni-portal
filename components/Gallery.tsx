@@ -1,35 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { X, ZoomIn } from 'lucide-react';
-import { GALLERY_PHOTOS } from '../constants';
 import { Photo } from '../types';
-import { client, urlFor } from '../lib/sanity';
+import { fetchPhotos } from '../lib/sanity';
 
 const Gallery: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>(GALLERY_PHOTOS);
+  const [photos, setPhotos] = useState<Photo[]>([]);
 
   useEffect(() => {
-    // Fetch photos from Sanity
-    const query = `*[_type == "photo"] {
-      _id,
-      caption,
-      image
-    }`;
-
-    client.fetch(query)
-      .then((data) => {
-        if (data && data.length > 0) {
-          const formattedPhotos = data.map((item: any) => ({
-            id: item._id,
-            url: urlFor(item.image)?.width(800).height(600).url() || '',
-            caption: item.caption
-          }));
-          setPhotos(formattedPhotos);
-        }
-      })
-      .catch((err) => {
-        console.log("Sanity fetch failed (using static data):", err);
-      });
+    console.log("Starting to fetch photos...");
+    fetchPhotos().then((data: any[]) => {
+      console.log("Photos data received:", data);
+      // Map Sanity data to our Photo type
+      const formattedPhotos = data.map((item) => ({
+        id: item._id,
+        url: item.url || '',
+        caption: item.caption
+      }));
+      console.log("Formatted photos:", formattedPhotos);
+      setPhotos(formattedPhotos);
+    }).catch((err) => {
+      console.error("Sanity fetch failed:", err);
+      console.error("Error details:", err.message);
+    });
   }, []);
 
   return (
@@ -48,14 +41,14 @@ const Gallery: React.FC = () => {
         {/* Photo Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {photos.map((photo) => (
-            <div 
-              key={photo.id} 
+            <div
+              key={photo.id}
               className="group relative aspect-[4/3] overflow-hidden rounded-lg cursor-pointer shadow-md bg-slate-200"
               onClick={() => setSelectedPhoto(photo)}
             >
-              <img 
-                src={photo.url} 
-                alt={photo.caption} 
+              <img
+                src={photo.url}
+                alt={photo.caption}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -72,16 +65,16 @@ const Gallery: React.FC = () => {
       {/* Simple Modal / Lightbox */}
       {selectedPhoto && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedPhoto(null)}>
-          <button 
+          <button
             className="absolute top-6 right-6 text-white hover:text-cmi-gold transition-colors"
             onClick={() => setSelectedPhoto(null)}
           >
             <X size={32} />
           </button>
           <div className="max-w-4xl w-full max-h-[90vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
-            <img 
-              src={selectedPhoto.url} 
-              alt={selectedPhoto.caption} 
+            <img
+              src={selectedPhoto.url}
+              alt={selectedPhoto.caption}
               className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
             />
             <p className="mt-4 text-white text-lg font-medium">{selectedPhoto.caption}</p>

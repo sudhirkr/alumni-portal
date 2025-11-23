@@ -1,38 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { NEWS_UPDATES } from '../constants';
 import { NewsItem } from '../types';
-import { client } from '../lib/sanity';
+import { fetchNews } from '../lib/sanity';
 
 const News: React.FC = () => {
-  const [news, setNews] = useState<NewsItem[]>(NEWS_UPDATES);
+  const [news, setNews] = useState<NewsItem[]>([]);
 
   useEffect(() => {
-    const query = `*[_type == "newsItem"] | order(date desc) {
-      _id,
-      title,
-      date,
-      summary,
-      category
-    }`;
-
-    client.fetch(query)
-      .then((data) => {
-        if (data && data.length > 0) {
-          const formattedNews = data.map((item: any) => ({
-            id: item._id,
-            title: item.title,
-            date: item.date,
-            summary: item.summary,
-            category: item.category
-          }));
-          setNews(formattedNews);
-        }
-      })
-      .catch((err) => {
-        console.log("Sanity fetch failed (using static data):", err);
-      });
+    fetchNews().then((data: any[]) => {
+      // Map Sanity data to our NewsItem type, format dates
+      const formattedNews = data.map((item) => ({
+        id: item._id,
+        title: item.title,
+        date: formatDate(item.date),
+        summary: item.summary,
+        category: item.category
+      }));
+      setNews(formattedNews);
+    }).catch((err) => {
+      console.log("Sanity fetch failed:", err);
+    });
   }, []);
+
+// Helper function to format date from ISO (2025-07-10) to "July 10, 2025"
+function formatDate(isoDate: string) {
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  return date.toLocaleDateString('en-US', options);
+}
 
   return (
     <section id="news" className="py-20 bg-slate-50">

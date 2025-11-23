@@ -12,12 +12,9 @@ export const photoType = defineType({
       validation: Rule => Rule.required()
     },
     {
-      name: 'image',
-      title: 'Image',
-      type: 'image',
-      options: {
-        hotspot: true
-      },
+      name: 'url',
+      title: 'Image URL',
+      type: 'url',
       validation: Rule => Rule.required()
     }
   ]

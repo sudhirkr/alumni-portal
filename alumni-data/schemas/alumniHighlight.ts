@@ -36,12 +36,9 @@ export const alumniHighlightType = defineType({
       validation: Rule => Rule.required()
     },
     {
-      name: 'image',
-      title: 'Photo',
-      type: 'image',
-      options: {
-        hotspot: true
-      },
+      name: 'imageUrl',
+      title: 'Image URL',
+      type: 'url',
       validation: Rule => Rule.required()
     }
   ]

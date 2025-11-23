@@ -10,22 +10,59 @@ dotenv.config({ path: path.resolve('.env.local') });
 const client = createClient({
   projectId: process.env.SANITY_PROJECT_ID || 'gzqpmpjn',
   dataset: process.env.SANITY_DATASET || 'production',
+  token: process.env.SANITY_AUTH_TOKEN,
   useCdn: false,
   apiVersion: '2024-03-01',
 });
+
+// Function to parse date strings like "Aug 15, 2025" to "2025-08-15"
+function parseDate(dateStr) {
+  const months = {
+    Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+    Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+  };
+
+  const parts = dateStr.replace(',', '').split(' ');
+  const month = months[parts[0]];
+  const day = parts[1].padStart(2, '0');
+  const year = parts[2];
+  return `${year}-${month}-${day}`;
+}
+
+// Function to clear existing documents of a specific type
+async function clearDocuments(documentType: string) {
+  console.log(`Clearing existing ${documentType} documents...`);
+  try {
+    const documents = await client.fetch(`*[_type == "${documentType}"]._id`);
+    if (documents.length > 0) {
+      await client.delete({ query: `*[_type == "${documentType}"]` });
+      console.log(`Cleared ${documents.length} ${documentType} documents`);
+    } else {
+      console.log(`No existing ${documentType} documents to clear`);
+    }
+  } catch (error) {
+    console.error(`Error clearing ${documentType}:`, error);
+  }
+}
 
 // Function to populate CMS with static data
 async function populateCMS() {
   console.log('Starting CMS population...');
 
   try {
+    // Clear existing documents first
+    await clearDocuments('event');
+    await clearDocuments('alumniHighlight');
+    await clearDocuments('newsItem');
+    await clearDocuments('photo');
+
     // Populate Events
     console.log('Creating events...');
     for (const event of UPCOMING_EVENTS) {
       await client.create({
         _type: 'event',
         title: event.title,
-        date: event.date,
+        date: parseDate(event.date),
         time: event.time || '',
         location: event.location,
         description: event.description,
@@ -43,8 +80,7 @@ async function populateCMS() {
         role: alumni.role,
         company: alumni.company,
         quote: alumni.quote,
-        // Note: You'll need to upload the images to Sanity separately
-        // image: { _type: 'image', asset: { _ref: 'image-ref' } }
+        imageUrl: alumni.imageUrl
       });
     }
 
@@ -54,7 +90,7 @@ async function populateCMS() {
       await client.create({
         _type: 'newsItem',
         title: news.title,
-        date: news.date,
+        date: parseDate(news.date),
         summary: news.summary,
         category: news.category
       });
@@ -66,12 +102,11 @@ async function populateCMS() {
       await client.create({
         _type: 'photo',
         caption: photo.caption,
-        // Note: You'll need to upload the images to Sanity separately
-        // image: { _type: 'image', asset: { _ref: 'image-ref' } }
+        url: photo.url
       });
     }
 
-    console.log('CMS population completed!');
+    console.log('CMS population completed successfully!');
   } catch (error) {
     console.error('Error populating CMS:', error);
   }
