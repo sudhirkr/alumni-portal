@@ -4,8 +4,8 @@ import imageUrlBuilder from '@sanity/image-url';
 // Configured with a valid-format placeholder.
 // The app will load static data until you replace 'your-project-id' with your actual Sanity Project ID.
 export const client = createClient({
-  projectId: 'your-project-id', 
-  dataset: 'production',
+  projectId: import.meta.env.SANITY_PROJECT_ID || 'gzqpmpjn',
+  dataset: import.meta.env.SANITY_DATASET || 'production',
   useCdn: true,
   apiVersion: '2024-03-01',
 });

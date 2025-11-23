@@ -1,0 +1,20 @@
+{
+  "root": true,
+  "project": {
+    "name": "alumni-webpage"
+  },
+  "api": {
+    "projectId": "gzqpmpjn",
+    "dataset": "production"
+  },
+  "plugins": [
+    "@sanity/vision"
+  ],
+  "env": {
+    "development": {
+      "plugins": [
+        "@sanity/vision"
+      ]
+    }
+  }
+}
