@@ -34,7 +34,7 @@ const Navbar: React.FC = () => {
             <GraduationCap size={24} />
           </div>
           <div>
-            <span className={`text-xl font-bold tracking-tight ${isScrolled ? 'text-cmi-navy' : 'text-cmi-navy lg:text-white'}`}>
+            <span className={`text-xl font-bold tracking-tight ${isScrolled ? 'text-cmi-navy' : 'text-white'}`}>
               CMI Alumni
             </span>
           </div>
